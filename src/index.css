@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-pure: #000000;
+  --bg-surface: #09090b;
+  --bg-card: #111114;
+  --bg-card-hover: #18181c;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.16);
+  --border-strong: rgba(255, 255, 255, 0.3);
+  --accent-red: #dc2626;
+  --accent-red-hover: #ef4444;
+  --accent-red-glow: rgba(220, 38, 38, 0.25);
+  --text-main: #ffffff;
+  --text-dim: #a1a1aa;
+  --text-sub: #71717a;
+  
+  --font-display: 'Syne', -apple-system, sans-serif;
+  --font-body: 'Space Grotesk', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--bg-pure);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+  background-color: #000000;
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+/* Typography utilities */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.04em;
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+/* Visual Studio Grid background */
+.editorial-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 160px 160px;
+}
+
+/* Film ruler tick background */
+.ruler-pattern {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0,
+    rgba(255, 255, 255, 0.25) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+
+.ruler-pattern-dense {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.18) 0,
+    rgba(255, 255, 255, 0.18) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+}
+
+/* Filmstrip Sprockets */
+.sprockets-top, .sprockets-bottom {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  height: 8px;
+}
+
+.sprocket-hole {
+  width: 6px;
+  height: 6px;
+  background-color: #000000;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* Marquee continuous scroll */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Bracket corners */
+.bracket-box {
+  position: relative;
+}
+.bracket-box::before, .bracket-box::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+.bracket-box::before {
+  top: 4px;
+  left: 4px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+}
+.bracket-box::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+}
+
+/* Hover glow effect */
+.hover-red-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-red-glow:hover {
+  box-shadow: 0 0 25px rgba(220, 38, 38, 0.3);
+  border-color: rgba(220, 38, 38, 0.8);
+}
+
+/* Hide scrollbar for clean carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Subtle scanline effect */
+.scanline-overlay {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+}
