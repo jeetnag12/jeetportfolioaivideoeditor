@@ -129,11 +129,13 @@ body {
   display: flex;
   width: max-content;
   animation: marquee 25s linear infinite;
+  will-change: transform;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
 
 /* Bracket corners */
 .bracket-box {

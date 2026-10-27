@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Film, Grid, X, Copy, Check, ArrowUpRight, Mail } from 'lucide-react';
 import { YoutubeIcon, InstagramIcon, LinkedinIcon, WhatsappIcon } from './Icons';
 import { PERSONAL_INFO } from '../data/portfolioData';
+import { gsap, EASES } from '../motion/motionSystem';
 
 interface NavigationProps {
   activeSection: string;
@@ -11,6 +12,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+  const pillRef = useRef<HTMLDivElement>(null);
+  const modalOverlayRef = useRef<HTMLDivElement>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   // Live timecode updater
   useEffect(() => {
@@ -21,7 +25,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
           hour: '2-digit',
           minute: '2-digit',
           second: '2-digit',
-          hour12: true
+          hour12: true,
         })
       );
     };
@@ -30,17 +34,75 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Floating pill initial entrance animation
+  useEffect(() => {
+    if (!pillRef.current) return;
+
+    gsap.from(pillRef.current, {
+      y: -30,
+      opacity: 0,
+      duration: 0.8,
+      delay: 0.2,
+      ease: EASES.cinematic,
+      clearProps: 'transform,opacity',
+    });
+  }, []);
+
+  const closeMenu = () => {
+    if (!modalOverlayRef.current || !modalContentRef.current) {
+      setIsOpen(false);
+      return;
+    }
+
+    gsap.to(modalContentRef.current, {
+      scale: 0.97,
+      y: 10,
+      opacity: 0,
+      duration: 0.2,
+      ease: 'power2.in',
+    });
+    gsap.to(modalOverlayRef.current, {
+      opacity: 0,
+      duration: 0.2,
+      ease: 'power2.in',
+      onComplete: () => setIsOpen(false),
+    });
+  };
+
   // Keyboard Escape listener and body scroll lock
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+        closeMenu();
       }
     };
 
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+
+      // Animate modal open
+      if (modalOverlayRef.current && modalContentRef.current) {
+        gsap.fromTo(
+          modalOverlayRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: 'power2.out' }
+        );
+        gsap.fromTo(
+          modalContentRef.current,
+          { scale: 0.95, y: 15, opacity: 0 },
+          { scale: 1, y: 0, opacity: 1, duration: 0.35, ease: EASES.cinematic }
+        );
+
+        const links = modalContentRef.current.querySelectorAll('.menu-nav-link');
+        if (links.length > 0) {
+          gsap.fromTo(
+            links,
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.3, stagger: 0.04, delay: 0.1, ease: EASES.cinematic }
+          );
+        }
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -70,13 +132,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
     <>
       {/* Top Floating Pill Bar */}
       <header className="fixed top-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
-        <div className="pointer-events-auto flex items-center justify-between gap-4 sm:gap-8 px-4 sm:px-6 py-2.5 bg-black/85 backdrop-blur-md border border-white/15 rounded-full shadow-2xl transition-all duration-300 hover:border-white/30">
+        <div
+          ref={pillRef}
+          className="pointer-events-auto flex items-center justify-between gap-4 sm:gap-8 px-4 sm:px-6 py-2.5 bg-black/85 backdrop-blur-md border border-white/15 rounded-full shadow-2xl transition-all duration-300 hover:border-white/30"
+        >
           {/* Brand Wordmark */}
           <a
             href="#hero"
             className="flex items-center gap-2 group text-white text-xs sm:text-sm font-mono font-bold tracking-wider hover:text-red-500 transition-colors"
           >
-            <div className="w-5 h-5 rounded bg-red-600/20 border border-red-500/50 flex items-center justify-center text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all">
+            <div className="w-5 h-5 rounded bg-red-600/20 border border-red-500/50 flex items-center justify-center text-red-500 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 group-hover:scale-105">
               <Film className="w-3 h-3" />
             </div>
             <span className="font-display font-extrabold tracking-tight text-sm sm:text-base">
@@ -97,10 +162,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
             onClick={() => setIsOpen(true)}
             id="menu-trigger"
             aria-label="Open Navigation Menu"
-            className="flex items-center gap-2 text-xs sm:text-sm font-mono text-zinc-200 hover:text-white transition-colors group pl-2"
+            className="flex items-center gap-2 text-xs sm:text-sm font-mono text-zinc-200 hover:text-white transition-colors group pl-2 cursor-pointer"
           >
             <span className="tracking-wider uppercase font-medium">Menu</span>
-            <div className="w-6 h-6 rounded flex items-center justify-center bg-white/10 group-hover:bg-red-600 group-hover:text-white transition-all">
+            <div className="w-6 h-6 rounded flex items-center justify-center bg-white/10 group-hover:bg-red-600 group-hover:text-white transition-all duration-300 group-hover:rotate-90">
               <Grid className="w-3.5 h-3.5" />
             </div>
           </button>
@@ -110,12 +175,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
       {/* Full-Screen / Modal Navigation Overlay (Recreating Sequence Reference sec_120) */}
       {isOpen && (
         <div
+          ref={modalOverlayRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl"
+          onClick={closeMenu}
         >
           <div
+            ref={modalContentRef}
             className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 shadow-2xl rounded-sm overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
@@ -126,9 +193,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
                 <span>{PERSONAL_INFO.brand}</span>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={closeMenu}
                 id="close-menu"
-                className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider font-semibold hover:opacity-80 transition-opacity"
+                className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider font-semibold hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <span>Close</span>
                 <X className="w-4 h-4" />
@@ -143,8 +210,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
                   <a
                     key={link.name}
                     href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`group relative p-6 transition-all flex flex-col justify-between min-h-[95px] ${
+                    onClick={closeMenu}
+                    className={`menu-nav-link group relative p-6 transition-all flex flex-col justify-between min-h-[95px] ${
                       isActive
                         ? 'bg-red-950/40 border-b-2 border-red-600'
                         : 'bg-zinc-950 hover:bg-zinc-900/80'
@@ -171,8 +238,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
                   <a
                     key={link.name}
                     href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`group relative p-6 transition-all flex flex-col justify-between min-h-[95px] ${
+                    onClick={closeMenu}
+                    className={`menu-nav-link group relative p-6 transition-all flex flex-col justify-between min-h-[95px] ${
                       isActive
                         ? 'bg-red-950/40 border-b-2 border-red-600'
                         : 'bg-zinc-950 hover:bg-zinc-900/80'
@@ -216,7 +283,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
                   <button
                     onClick={handleCopyEmail}
                     title="Copy Email"
-                    className="p-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-zinc-700/50"
+                    className="p-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-zinc-700/50 cursor-pointer"
                   >
                     {copied ? (
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -232,8 +299,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
 
               <a
                 href="#contact"
-                onClick={() => setIsOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-mono text-xs uppercase tracking-wider font-semibold rounded-sm text-center transition-colors"
+                onClick={closeMenu}
+                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-mono text-xs uppercase tracking-wider font-semibold rounded-sm text-center transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]"
               >
                 Get In Touch
               </a>

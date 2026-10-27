@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, Calendar, User, Clock, Film } from 'lucide-react';
 import { type Project } from '../data/portfolioData';
+import { gsap, EASES } from '../motion/motionSystem';
 
 interface ProjectModalProps {
   project: Project | null;
@@ -8,21 +9,60 @@ interface ProjectModalProps {
 }
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleClose = React.useCallback(() => {
+    if (!overlayRef.current || !contentRef.current) {
+      onClose();
+      return;
+    }
+
+    gsap.to(contentRef.current, {
+      scale: 0.96,
+      y: 15,
+      opacity: 0,
+      duration: 0.2,
+      ease: 'power2.in',
+    });
+    gsap.to(overlayRef.current, {
+      opacity: 0,
+      duration: 0.2,
+      ease: 'power2.in',
+      onComplete: onClose,
+    });
+  }, [onClose]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
+
     if (project) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+
+      if (overlayRef.current && contentRef.current) {
+        gsap.fromTo(
+          overlayRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: 'power2.out' }
+        );
+        gsap.fromTo(
+          contentRef.current,
+          { scale: 0.94, y: 25, opacity: 0 },
+          { scale: 1, y: 0, opacity: 1, duration: 0.35, ease: EASES.cinematic }
+        );
+      }
     } else {
       document.body.style.overflow = 'unset';
     }
+
     return () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [project, onClose]);
+  }, [project, handleClose]);
 
   if (!project) return null;
 
@@ -30,12 +70,14 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl"
+      onClick={handleClose}
     >
       <div
+        ref={contentRef}
         className={`w-full ${
           isVertical ? 'max-w-xl' : 'max-w-4xl'
         } bg-zinc-950 border border-zinc-800 shadow-2xl rounded-sm overflow-hidden flex flex-col max-h-[92vh]`}
@@ -51,8 +93,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           </div>
 
           <button
-            onClick={onClose}
-            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            onClick={handleClose}
+            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
             title="Close (Esc)"
           >
             <X className="w-5 h-5" />

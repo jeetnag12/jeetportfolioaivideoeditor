@@ -12,12 +12,13 @@ import { FAQSection } from './components/FAQSection';
 import { FilmstripTicker } from './components/FilmstripTicker';
 import { ContactSection } from './components/ContactSection';
 import { type Project, PROJECTS } from './data/portfolioData';
+import { ScrollTrigger } from './motion/motionSystem';
 
 export function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string>('hero');
 
-  // Track active section for navigation
+  // Track active section for navigation & sync ScrollTrigger
   useEffect(() => {
     const sections = ['hero', 'works', 'about', 'process', 'experience', 'contact'];
     const handleScroll = () => {
@@ -35,8 +36,32 @@ export function App() {
         }
       }
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Refresh ScrollTrigger after DOM renders, fonts, and images load
+    const t1 = setTimeout(() => ScrollTrigger.refresh(), 150);
+    const t2 = setTimeout(() => ScrollTrigger.refresh(), 600);
+    const t3 = setTimeout(() => ScrollTrigger.refresh(), 1200);
+
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
+    }
+
+    const handleResize = () => {
+      ScrollTrigger.refresh();
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('load', handleResize);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('load', handleResize);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, []);
 
   const handleOpenShowreel = () => {
